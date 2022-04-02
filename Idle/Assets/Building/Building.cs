@@ -1,4 +1,4 @@
-namespace DefaultNamespace {
+namespace Idle.Building {
     public abstract class Building {
         internal ulong _worker;
         internal IBuilding.EBuildingName _buildingName;

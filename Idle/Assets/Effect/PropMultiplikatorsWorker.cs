@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using DefaultNamespace;
+using Idle.Building;
+using UnityEditor;
 
 namespace Effect {
     public readonly struct PropMultiplikatorsWorker {
@@ -13,5 +14,9 @@ namespace Effect {
             Multiplikators = multiplikators;
             Worker = worker;
         }
+
+        public static PropMultiplikatorsWorker FactoryDefault() => new PropMultiplikatorsWorker(
+                new Dictionary<IBuilding.EBuildingName, double>(0),
+                new Dictionary<IBuilding.EBuildingName, double>(0));
     }
 }
