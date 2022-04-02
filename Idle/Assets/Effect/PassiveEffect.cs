@@ -24,6 +24,7 @@ namespace Effect {
             Faith,
             
             // TODO Write Hendrik EPassiveEffects 
+            ...
         }
     }
 }
