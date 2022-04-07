@@ -1,6 +1,11 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Idle",
+    "\\Idle\\Assets",
+    "\\Idle\\Assets\\Adaptive Performance",
+    "\\Idle\\Packages"
   ],
+  "SelectedNode": "\\Idle\\Assets\\ProjectTime",
   "PreviewInSolutionExplorer": false
 }

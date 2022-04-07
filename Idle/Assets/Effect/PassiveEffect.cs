@@ -6,7 +6,16 @@ namespace Effect {
     public class PassiveEffect {
         private Action<PropMultiplikatorsWorker> _func;
         private static readonly Dictionary<EPassiveEffects, Action<PropMultiplikatorsWorker>> CallFunc = new () {
-            // TODO Write Hendrik CallFunc 
+            // TODO Write Hendrik CallFunc
+            { EPassiveEffects.PassivFood, prop => {
+                // Verweis Map
+                // Aufruf von Value (wenn nötig)
+                // return new multi
+            } },
+            { EPassiveEffects.PassivWood, prop => { } },
+            { EPassiveEffects.PassivStone, prop => { } },
+            { EPassiveEffects.PassivMetal, prop => { } },
+            { EPassiveEffects.PassivFaith, prop => { } },
         };
 
         public void CallEffect(PropMultiplikatorsWorker prop) => _func(prop);
@@ -21,10 +30,11 @@ namespace Effect {
         
         
         public enum EPassiveEffects {
-            Faith,
-            
-            // TODO Write Hendrik EPassiveEffects 
-            ...
+            PassivFood,
+            PassivWood,
+            PassivStone,
+            PassivMetal,
+            PassivFaith,
         }
     }
 }

@@ -32,7 +32,11 @@ namespace Idle.Building {
             Shrine,
             School,
             Smith,
-            Temple
+            Temple,
+            Docks,
+            Mill,
+            Factory,
+            College,
         }
     }
 }

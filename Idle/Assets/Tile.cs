@@ -16,7 +16,6 @@ namespace Idle {
 
         public Tile(uint2 posi) {
             Posi = posi;
-            
             throw new NotImplementedException($"TODO Write Langer {nameof(Tile)} (Create GameObject AND Building And Gui)");
         }
 
