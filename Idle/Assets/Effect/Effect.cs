@@ -12,10 +12,77 @@ namespace Effect
 
         private static readonly Dictionary<Effect.EEffectName, Action<PropMultiplikatorsWorker>> EffectFuncs = new() {
             // TODO Write Hendrik EffectFuncs 
-            { EEffectName.RitualFood, prop => { } },
-            { EEffectName.RitualWood, prop => { } },
-            { EEffectName.RitualStone, prop => { } },
-            { EEffectName.RitualMetal, prop => { } },
+            { EEffectName.RitualFood, prop => {
+                var fromMap = Object.FindObjectOfType<Map>();
+                fromMap.Cargo.TryGetValue(ETypeHint.Faith, out var faith);
+                var faithNeeded = 10000;
+
+                if (faith >= faithNeeded) {
+                    // Set new Multiplicator for all producers
+                    fromMap.Cargo.TryGetValue(prop.Multiplikators.Values,out var multiFood);
+                    multiFood *= 2;
+
+                    // Set new Faith Value
+                    ETypeHint.Faith = fromMap.Cargo[ETypeHint.Faith] / faithNeeded;
+                    faith = faith / faithNeeded;
+
+                    // Return new Multiplicator
+                    return multiFood;
+                } else {
+                    throw new Exception("Not enough Faith")
+                }
+            } },
+            { EEffectName.RitualWood, prop => {
+                var fromMap = Object.FindObjectOfType<Map>();
+                fromMap.Cargo.TryGetValue(ETypeHint.Faith, out var faith);
+                var faithNeeded = 10000;
+
+                if (faith >= faithNeeded) {
+                    fromMap.Cargo.TryGetValue(prop.Multiplikators.Values,out var multiWood);
+                    multiWood *= 2;
+
+                    ETypeHint.Faith = fromMap.Cargo[ETypeHint.Faith] / faithNeeded;
+                    faith = faith / faithNeeded;
+                    
+                    return multiWood;
+                } else {
+                    throw new Exception("Not enough Faith")
+                }
+            } },
+            { EEffectName.RitualStone, prop => {
+                var fromMap = Object.FindObjectOfType<Map>();
+                fromMap.Cargo.TryGetValue(ETypeHint.Faith, out var faith);
+                var faithNeeded = 10000;
+
+                if (faith >= faithNeeded) {
+                    fromMap.Cargo.TryGetValue(prop.Multiplikators.Values,out var multiStone);
+                    multiStone *= 2;
+
+                    ETypeHint.Faith = fromMap.Cargo[ETypeHint.Faith] / faithNeeded;
+                    faith = faith / faithNeeded;
+                    
+                    return multiStone;
+                } else {
+                    throw new Exception("Not enough Faith")
+                }
+            } },
+            { EEffectName.RitualMetal, prop => {
+                var fromMap = Object.FindObjectOfType<Map>();
+                fromMap.Cargo.TryGetValue(ETypeHint.Faith, out var faith);
+                var faithNeeded = 10000;
+
+                if (faith >= faithNeeded) {
+                    fromMap.Cargo.TryGetValue(prop.Multiplikators.Values,out var multiMetal);
+                    multiMetal *= 2;
+
+                    ETypeHint.Faith = fromMap.Cargo[ETypeHint.Faith] / faithNeeded;
+                    faith = faith / faithNeeded;
+                    
+                    return multiMetal;
+                } else {
+                    throw new Exception("Not enough Faith")
+                }
+            } },
         };
 
 
