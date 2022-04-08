@@ -12,10 +12,43 @@ namespace Effect
 
         private static readonly Dictionary<Effect.EEffectName, Action<PropMultiplikatorsWorker>> EffectFuncs = new() {
             // TODO Write Hendrik EffectFuncs 
-            { EEffectName.RitualFood, prop => { } },
-            { EEffectName.RitualWood, prop => { } },
-            { EEffectName.RitualStone, prop => { } },
-            { EEffectName.RitualMetal, prop => { } },
+            {EEffectName.RitualFood, prop => {
+                double multiFarm = 0;
+                double multiDocks = 0;
+                
+                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Farm))
+                    multiFarm = prop.Multiplikators[IBuilding.EBuildingName.Farm];
+                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Docks))
+                    multiDocks = prop.Multiplikators[IBuilding.EBuildingName.Docks];
+
+                prop.Multiplikators[IBuilding.EBuildingName.Farm] = (multiFarm == 0 ? 1 : multiFarm) * 2;
+                prop.Multiplikators[IBuilding.EBuildingName.Docks] = (multiDocks == 0 ? 1 : multiDocks) * 2;
+            } },
+            {EEffectName.RitualWood, prop => {
+                double multi = 0;
+                
+                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Forest))
+                    multi = prop.Multiplikators[IBuilding.EBuildingName.Forest];
+
+
+                prop.Multiplikators[IBuilding.EBuildingName.Forest] = (multi == 0 ? 1 : multi) * 2;
+            } },
+            {EEffectName.RitualStone, prop => {
+                double multi = 0;
+                
+                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Mine))
+                    multi = prop.Multiplikators[IBuilding.EBuildingName.Mine];
+
+                prop.Multiplikators[IBuilding.EBuildingName.Mine] = (multi == 0 ? 1 : multi) * 2;
+            } },
+            {EEffectName.RitualMetal, prop => {
+                double multi = 0;
+                
+                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Smith))
+                    multi = prop.Multiplikators[IBuilding.EBuildingName.Smith];
+
+                prop.Multiplikators[IBuilding.EBuildingName.Smith] = (multi == 0 ? 1 : multi) * 2;
+            } },
         };
 
 
