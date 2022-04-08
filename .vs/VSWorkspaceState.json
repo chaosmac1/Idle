@@ -4,8 +4,9 @@
     "\\Idle",
     "\\Idle\\Assets",
     "\\Idle\\Assets\\Adaptive Performance",
+    "\\Idle\\Assets\\Effect",
     "\\Idle\\Packages"
   ],
-  "SelectedNode": "\\Idle\\Assets\\ProjectTime",
+  "SelectedNode": "\\Idle\\Assets\\Effect\\PassiveEffect.cs",
   "PreviewInSolutionExplorer": false
 }
