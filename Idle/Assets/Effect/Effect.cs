@@ -2,14 +2,17 @@ using System;
 using System.Collections.Generic;
 using Hint;
 using Idle.Building;
+using Idle;
+using Idle.Building;
+using Object = UnityEngine.Object;
 
-namespace Effect
-{
-    public class Effect
-    {
+namespace Effect {
+    public class Effect {
         private readonly DateTime _endEffect;
         private readonly Action<PropMultiplikatorsWorker> _func;
 
+        public DateTime endTime => _endEffect; 
+        
         private static readonly Dictionary<Effect.EEffectName, Action<PropMultiplikatorsWorker>> EffectFuncs = new() {
             // TODO Write Hendrik EffectFuncs 
             {EEffectName.RitualFood, prop => {
@@ -51,8 +54,6 @@ namespace Effect
             } },
         };
 
-
-
         public bool EffectIsActive() => DateTime.UtcNow < _endEffect;
 
         public void CallEffect(PropMultiplikatorsWorker prop)
@@ -78,6 +79,7 @@ namespace Effect
             RitualWood,
             RitualStone,
             RitualMetal,
+            // TODO Write Hendrik EEffectName
         }
     }
 }

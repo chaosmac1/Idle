@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Effect;
 using Hint;
 using Idle.Building;
-using Time;
+using LambdaTime;
 using Unity.Mathematics;
 using Save;
 using UnityEditor;
@@ -23,6 +23,12 @@ namespace Idle {
         private Tile[,]? _tiles;
         private Dictionary<Effect.Effect.EEffectName, Effect.Effect>? _effects;
         private Dictionary<Effect.PassiveEffect.EPassiveEffects, Effect.PassiveEffect>? _passiveEffects;
+
+        public IReadOnlyDictionary<Effect.Effect.EEffectName, Effect.Effect> Effects 
+            => _effects?? new Dictionary<Effect.Effect.EEffectName, Effect.Effect>();
+
+        public IReadOnlyDictionary<Effect.PassiveEffect.EPassiveEffects, Effect.PassiveEffect> PassiveEffects
+            => _passiveEffects ?? new Dictionary<Effect.PassiveEffect.EPassiveEffects, Effect.PassiveEffect>();
 
         public IReadOnlyDictionary<IBuilding.EBuildingName, double> Multiplicators { get; internal set; }
         
@@ -68,8 +74,8 @@ namespace Idle {
         }
 
         public void SoftReset() {
-            if (_passiveEffects is not null && _passiveEffects.ContainsKey(PassiveEffect.EPassiveEffects.Faith)) {
-                _passiveEffects[PassiveEffect.EPassiveEffects.Faith].CallEffect(PropMultiplikatorsWorker.FactoryDefault());
+            if (_passiveEffects is not null && _passiveEffects.ContainsKey(PassiveEffect.EPassiveEffects.PassivFaith)) {
+                _passiveEffects[PassiveEffect.EPassiveEffects.PassivFaith].CallEffect(PropMultiplikatorsWorker.FactoryDefault());
             }
             
 

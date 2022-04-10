@@ -30,6 +30,13 @@ namespace Idle {
             return res;
         }
     }
+
+    public readonly struct CalcFaith {
+        public static ulong CalcFaithCost(Map map, uint factor) {
+            // TODO Write Calc
+            throw new NotImplementedException(nameof(CalcFaithCost));
+        }
+    }
 }
 
 

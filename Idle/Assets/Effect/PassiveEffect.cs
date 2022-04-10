@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Idle.Building;
 
 namespace Effect {
     public class PassiveEffect {
@@ -19,7 +20,7 @@ namespace Effect {
                 prop.Multiplikators[IBuilding.EBuildingName.Farm] = (multiFarm == 0 ? 1 : multiFarm) * 2;
                 prop.Multiplikators[IBuilding.EBuildingName.Docks] = (multiDocks == 0 ? 1 : multiDocks) * 2;
             } },
-            {EEffectName.PassivWood, prop => {
+            {EPassiveEffects.PassivWood, prop => {
                 double multi = 0;
                 
                 if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Forest))
@@ -28,7 +29,7 @@ namespace Effect {
 
                 prop.Multiplikators[IBuilding.EBuildingName.Forest] = (multi == 0 ? 1 : multi) * 2;
             } },
-            {EEffectName.PassivStone, prop => {
+            {EPassiveEffects.PassivStone, prop => {
                 double multi = 0;
                 
                 if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Mine))
@@ -37,7 +38,7 @@ namespace Effect {
 
                 prop.Multiplikators[IBuilding.EBuildingName.Mine] = (multi == 0 ? 1 : multi) * 2;
             } },
-            {EEffectName.PassivMetal, prop => {
+            {EPassiveEffects.PassivMetal, prop => {
                 double multi = 0;
                 
                 if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Smith))

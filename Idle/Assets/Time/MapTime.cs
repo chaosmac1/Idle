@@ -1,6 +1,6 @@
 using System;
 
-namespace Time {
+namespace LambdaTime {
     public readonly struct MapTime {
         public readonly float DeltaTime;
         public readonly DateTime LastUpdate;
