@@ -2,60 +2,66 @@
 using System;
 using System.Collections.Generic;
 using Idle.Building;
+using UnityEngine;
 
-namespace Effect {
+namespace Idle.Effect {
     public class PassiveEffect {
         private Action<PropMultiplikatorsWorker> _func;
         private static readonly Dictionary<EPassiveEffects, Action<PropMultiplikatorsWorker>> CallFunc = new () {
-            // TODO Write Hendrik CallFunc
             { EPassiveEffects.PassivFood, prop => {
-                double multiFarm = 0;
-                double multiDocks = 0;
+                var mulityplay = SetMulityplayByCount(2, EPassiveEffects.PassivFood);
+                double multiFarm = GetMultiplikatorOr1(prop, IBuilding.EBuildingName.Farm) * mulityplay;
+                double multiDocks = GetMultiplikatorOr1(prop, IBuilding.EBuildingName.Docks) * mulityplay;
                 
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Farm))
-                    multiFarm = prop.Multiplikators[IBuilding.EBuildingName.Farm];
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Docks))
-                    multiDocks = prop.Multiplikators[IBuilding.EBuildingName.Docks];
-
-                prop.Multiplikators[IBuilding.EBuildingName.Farm] = (multiFarm == 0 ? 1 : multiFarm) * 2;
-                prop.Multiplikators[IBuilding.EBuildingName.Docks] = (multiDocks == 0 ? 1 : multiDocks) * 2;
+                prop.Multiplikators[IBuilding.EBuildingName.Farm] = multiFarm;
+                prop.Multiplikators[IBuilding.EBuildingName.Docks] = multiDocks;
             } },
-            {EPassiveEffects.PassivWood, prop => {
-                double multi = 0;
-                
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Forest))
-                    multi = prop.Multiplikators[IBuilding.EBuildingName.Forest];
+            { EPassiveEffects.PassivWood, prop => {
+                var mulityplay = SetMulityplayByCount(2, EPassiveEffects.PassivWood);
+                double multi = GetMultiplikatorOr1(prop, IBuilding.EBuildingName.Forest) * mulityplay;
 
-
-                prop.Multiplikators[IBuilding.EBuildingName.Forest] = (multi == 0 ? 1 : multi) * 2;
+                prop.Multiplikators[IBuilding.EBuildingName.Forest] = multi;
             } },
-            {EPassiveEffects.PassivStone, prop => {
-                double multi = 0;
+            { EPassiveEffects.PassivStone, prop => {
+                var mulityplay = SetMulityplayByCount(2, EPassiveEffects.PassivStone);
+                double multi = GetMultiplikatorOr1(prop, IBuilding.EBuildingName.Mine) * mulityplay;
                 
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Mine))
-                    multi = prop.Multiplikators[IBuilding.EBuildingName.Mine];
-
-
-                prop.Multiplikators[IBuilding.EBuildingName.Mine] = (multi == 0 ? 1 : multi) * 2;
+                prop.Multiplikators[IBuilding.EBuildingName.Mine] = multi;
             } },
-            {EPassiveEffects.PassivMetal, prop => {
-                double multi = 0;
+            { EPassiveEffects.PassivMetal, prop => {
+                var mulityplay = SetMulityplayByCount(2, EPassiveEffects.PassivMetal);
+                double multi = GetMultiplikatorOr1(prop, IBuilding.EBuildingName.Smith) * mulityplay;
                 
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Smith))
-                    multi = prop.Multiplikators[IBuilding.EBuildingName.Smith];
-
-                prop.Multiplikators[IBuilding.EBuildingName.Smith] = (multi == 0 ? 1 : multi) * 2;
+                prop.Multiplikators[IBuilding.EBuildingName.Smith] = multi;
             } },
             { EPassiveEffects.PassivFaith, prop => {
-                double multi = 0;
+                var mulityplay = SetMulityplayByCount(2, EPassiveEffects.PassivFaith);
+                double multi = GetMultiplikatorOr1(prop, IBuilding.EBuildingName.Shrine) * mulityplay;
                 
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Shrine))
-                    multi = prop.Multiplikators[IBuilding.EBuildingName.Shrine];
-
-                prop.Multiplikators[IBuilding.EBuildingName.Shrine] = (multi == 0 ? 1 : multi) * 2;
+                prop.Multiplikators[IBuilding.EBuildingName.Shrine] = multi;
             } },
         };
 
+        private static double GetMultiplikatorOr1(PropMultiplikatorsWorker prop, IBuilding.EBuildingName name) {
+            double res = 0;
+            if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Docks))
+                res = prop.Multiplikators[IBuilding.EBuildingName.Docks];
+            return res == 0 ? 1 : res;
+        }
+
+        private static int GetBuyNumber(PassiveEffect.EPassiveEffects effectName, Map? map = null) {
+            map = map is null
+                ? (GameObject.FindObjectOfType<Map>()?? throw new NullReferenceException(nameof(Map)))
+                : map;
+            if (map.PassiveEffects.ContainsKey(effectName) == false)
+                return 0;
+            return map.PassiveEffects[effectName].Count;
+        }
+
+        private static double SetMulityplayByCount(double now, PassiveEffect.EPassiveEffects effectName, Map? map = null) {
+            return now * ((double)GetBuyNumber(effectName, map) * 2);
+        }
+        
         public void CallEffect(PropMultiplikatorsWorker prop) => _func(prop);
 
         private PassiveEffect() => _func = worker => { };

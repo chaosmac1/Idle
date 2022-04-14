@@ -11,11 +11,13 @@ namespace LambdaTime {
         }
 
         public MapTime NextUpdate() {
-            throw new NotImplementedException("TODO Write Lambda " + nameof(NextUpdate));
+            var utcNow = DateTime.UtcNow;
+            var deltaTime = ((float) (utcNow.Ticks - LastUpdate.Ticks)) / 1000f;
+            return new MapTime(deltaTime, utcNow);
         }
 
-        public static MapTime Start() {
-            throw new NotImplementedException($"TODO Write Lambda {nameof(Start)}");
-        }
+        public static MapTime Start() => new MapTime(1, DateTime.UtcNow);
+
+        public float Fps() => 1f / DeltaTime;
     }
 }

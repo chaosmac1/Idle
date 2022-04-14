@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Effect;
+using Idle.Effect;
 using Hint;
 using Idle.Building;
 using LambdaTime;
@@ -15,20 +15,36 @@ namespace Idle {
     public class Map: MonoBehaviour {
         [SerializeField] public GameObject? taget;
         [SerializeField] public int2 size;
-        public Dictionary<ETypeHint, ulong>? Cargo { get; internal set; }
+        public Dictionary<ETypeHint, ulong>? Cargo { get; private set; }
         public MapTime MapTime { get; internal set; }
         private static readonly TimeSpan AutoSaveDelay = TimeSpan.FromMinutes(5);
         private DateTime _lastAutoSave;
         /// <summary> Y,X </summary>
         private Tile[,]? _tiles;
         private Dictionary<Effect.Effect.EEffectName, Effect.Effect>? _effects;
-        private Dictionary<Effect.PassiveEffect.EPassiveEffects, Effect.PassiveEffect>? _passiveEffects;
+        private Dictionary<Effect.PassiveEffect.EPassiveEffects, (Effect.PassiveEffect PassiveEffect, int Count)>? _passiveEffects;
 
         public IReadOnlyDictionary<Effect.Effect.EEffectName, Effect.Effect> Effects 
             => _effects?? new Dictionary<Effect.Effect.EEffectName, Effect.Effect>();
 
-        public IReadOnlyDictionary<Effect.PassiveEffect.EPassiveEffects, Effect.PassiveEffect> PassiveEffects
-            => _passiveEffects ?? new Dictionary<Effect.PassiveEffect.EPassiveEffects, Effect.PassiveEffect>();
+        public void SetEffects(Effect.Effect.EEffectName effectName, DateTime endTime)
+            => _effects![effectName] = new Effect.Effect(endTime, effectName);
+        
+        public IReadOnlyDictionary<PassiveEffect.EPassiveEffects, (PassiveEffect PassiveEffect, int Count)> PassiveEffects
+            => _passiveEffects ?? throw new NullReferenceException(nameof(_passiveEffects));
+
+        public void AddCountOrSetPassiveEffects(PassiveEffect.EPassiveEffects passiveEffects) {
+            if (!_passiveEffects!.ContainsKey(passiveEffects)) {
+                _passiveEffects[passiveEffects] = (new PassiveEffect(passiveEffects), 1);
+                return;
+            }
+
+            var tuple = _passiveEffects[passiveEffects];
+            tuple.Count += 1;
+            _passiveEffects[passiveEffects] = tuple;
+            return;
+        } 
+            
 
         public IReadOnlyDictionary<IBuilding.EBuildingName, double> Multiplicators { get; internal set; }
         
@@ -59,7 +75,8 @@ namespace Idle {
             
             foreach (var (key, value) in tileGroups) {
                 if (value is null || value.Count == 0) continue;
-                if (multiplicators.TryGetValue(key, out var multiplicator) == false) multiplicator = 1;
+                if (multiplicators.TryGetValue(key, out var multiplicator) == false) 
+                    multiplicator = 1;
 
                 var building = value[0];
                 
@@ -75,7 +92,9 @@ namespace Idle {
 
         public void SoftReset() {
             if (_passiveEffects is not null && _passiveEffects.ContainsKey(PassiveEffect.EPassiveEffects.PassivFaith)) {
-                _passiveEffects[PassiveEffect.EPassiveEffects.PassivFaith].CallEffect(PropMultiplikatorsWorker.FactoryDefault());
+                var tuple = _passiveEffects[PassiveEffect.EPassiveEffects.PassivFaith];
+                tuple.Count = 1;
+                tuple.PassiveEffect.CallEffect(PropMultiplikatorsWorker.FactoryDefault());
             }
             
 
@@ -87,7 +106,7 @@ namespace Idle {
                 new (ulong Worker, IBuilding.EBuildingName EBuildingName)?[size.y, size.x], 
                 new Dictionary<ETypeHint, ulong>(), 
                 DateTime.UtcNow, 
-                new List<PassiveEffect.EPassiveEffects>());
+                new List<(PassiveEffect.EPassiveEffects, int Count)>());
             
             SaveFileInfo.RemoveAllFiles();
             SaveFileInfo.CreateSaveFile(saveFile);
@@ -113,10 +132,10 @@ namespace Idle {
 
 
             ThrowIfNull(_passiveEffects, nameof(_passiveEffects));
-            var passiveEffectList = new List<PassiveEffect.EPassiveEffects>(_passiveEffects!.Count);
+            var passiveEffectList = new List<(PassiveEffect.EPassiveEffects, int Count)>(_passiveEffects!.Count);
             
-            foreach (var keyValuePair in _passiveEffects) 
-                passiveEffectList.Add(keyValuePair.Key);
+            foreach (var (key, (_, count)) in _passiveEffects) 
+                passiveEffectList.Add((key, Count: count));
 
             var saveFile = new SaveFile(
                 tiles, 
@@ -137,17 +156,19 @@ namespace Idle {
         private bool LoadSaveFile() {
             var fileInfo = SaveFileInfo.GetLatesFileInfo();
             if (fileInfo.HasValue == false) return false;
-
+            
             var saveFile = SaveFile.LoadFromFile(fileInfo.Value.FullPath);
             if (saveFile is null) return false;
             
             this.Cargo = saveFile.Cargo;
             this._lastAutoSave = saveFile.LastSave;
             this.MapTime = new MapTime(1, saveFile.LastSave);
+            
             UpdateTime();
             /// <summary> Y,X </summary>
             this._tiles = new Tile[size.y,size.x];
 
+            // Tiles
             for (int y = 0; y < size.y; y++) {
                 for (int x = 0; x < size.x; x++) {
                     var tile = new Tile(new uint2((uint) x, (uint) y));
@@ -158,11 +179,13 @@ namespace Idle {
                 }
             }
             
-            _passiveEffects = new Dictionary<PassiveEffect.EPassiveEffects, PassiveEffect>();
+            _passiveEffects = new Dictionary<PassiveEffect.EPassiveEffects, (PassiveEffect PassiveEffect, int Count)>();
 
-            foreach (var i in saveFile.PassiveEffectsList) 
-                _passiveEffects[i] = new PassiveEffect(i);
+            foreach ((PassiveEffect.EPassiveEffects Name, int Count) i in saveFile.PassiveEffectsList) 
+                _passiveEffects[i.Name] = (new PassiveEffect(i.Name), i.Count);
 
+            this._effects = new Dictionary<Effect.Effect.EEffectName, Effect.Effect>();
+            
             return true;
         }
 

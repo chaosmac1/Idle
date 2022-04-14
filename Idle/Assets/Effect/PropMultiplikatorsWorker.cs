@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Idle.Building;
 using UnityEditor;
 
-namespace Effect {
+namespace Idle.Effect {
     public readonly struct PropMultiplikatorsWorker {
         public readonly Dictionary<IBuilding.EBuildingName, double> Multiplikators;
         public readonly Dictionary<IBuilding.EBuildingName, double> Worker;

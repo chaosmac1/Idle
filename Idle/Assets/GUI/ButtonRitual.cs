@@ -137,12 +137,11 @@ namespace Idle.GUI {
                 cargoFaith = map.Cargo![ETypeHint.Faith];
 
             map.Cargo![ETypeHint.Faith] = cargoFaith - cost;
+
+            map.SetEffects(this.effect, DateTime.UtcNow.Add(TimeSpan.FromSeconds(this.effectTimeInSek)));
         }
         
-        public void Update() {
-            CheckNullReference();
-            
-        }
+        public void Update() => CheckNullReference();
     }
 }
 

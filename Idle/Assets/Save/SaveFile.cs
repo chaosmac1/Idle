@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using Effect;
+using Idle.Effect;
 using Hint;
 using Idle.Building;
 using Unity.VisualScripting;
@@ -15,13 +15,13 @@ namespace Save {
         public (ulong Worker, IBuilding.EBuildingName EBuildingName)?[,] Tiles;
         public Dictionary<ETypeHint, ulong> Cargo;
         public DateTime LastSave;
-        public List<PassiveEffect.EPassiveEffects> PassiveEffectsList;
-
+        public List<(PassiveEffect.EPassiveEffects, int Count)> PassiveEffectsList;
+        
         public SaveFile(
             (ulong Worker, IBuilding.EBuildingName EBuildingName)?[,] tiles, 
             Dictionary<ETypeHint, ulong> cargo, 
             DateTime lastSave, 
-            List<PassiveEffect.EPassiveEffects> passiveEffectsList) {
+            List<(PassiveEffect.EPassiveEffects, int Count)> passiveEffectsList) {
             
             Tiles = tiles;
             Cargo = cargo;
@@ -36,11 +36,12 @@ namespace Save {
             return ms.ToArray();
         }
 
-        public static SaveFile? LoadFromFile(string path) => ToThis(File.ReadAllBytes(path));
+        public static SaveFile? LoadFromFile(string path) {
+          return ToThis(File.ReadAllBytes(path));
+        }
 
         public static SaveFile? ToThis(Byte[] bytes) {
             var memStream = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
             var binForm = new BinaryFormatter();
             memStream.Write(bytes, 0, bytes.Length);
             memStream.Seek(0, SeekOrigin.Begin);

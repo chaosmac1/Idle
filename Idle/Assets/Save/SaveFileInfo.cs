@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,10 +19,10 @@ namespace Save {
 
         private static string GetDir() {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                throw new NotImplementedException($"TODO Write Lambda {nameof(GetDir)}");
+                return System.IO.Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalizedResources), "SnatchIdle");
             } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                return "~/.SnatchIdle";
-            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                return System.IO.Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".SnatchIdle");
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 throw new NotImplementedException($"TODO Write Lambda {nameof(GetDir)}");
             }
             else
@@ -33,23 +34,37 @@ namespace Save {
 
             if (System.IO.Directory.Exists(dirPath) == false) return Array.Empty<SaveFileInfo>();
 
-            return System.IO.Directory.GetFiles(dirPath)
-                .Where(x => x.Contains(Ext) && long.TryParse(x.Replace(Ext, ""), out var _))
-                .Select( x => 
-                    new SaveFileInfo(
-                        new DateTime(long.Parse(x.Replace(Ext, ""))),
-                        System.IO.Path.Join(dirPath, x)
-                        )
-                ).ToArray();
+            var res = new List<SaveFileInfo>(16);
+            
+            foreach (var fullFilePath in System.IO.Directory.GetFiles(dirPath)) {
+                if(fullFilePath.Contains(Ext) == false) continue;
+
+                var start = fullFilePath.LastIndexOf("/", StringComparison.Ordinal);
+                
+                var ticksString = fullFilePath.AsSpan(start + 1, fullFilePath.Length - Ext.Length - start -1);
+                
+                var ticks = Int64.Parse(ticksString);
+                
+                res.Add(
+                    new SaveFileInfo(new DateTime(ticks, DateTimeKind.Utc),
+                    fullFilePath
+                ));
+            }
+
+            return res.ToArray();
         }
 
         public static void RemoveAllFiles() {
             foreach (var saveFileInfo in GetAllFiles()) System.IO.File.Delete(saveFileInfo.FullPath);
         }
 
-        public static void CreateSaveFile(SaveFile saveFile) => 
-            File.WriteAllBytes(Path.Join(GetDir(), saveFile.LastSave + Ext) 
+        public static void CreateSaveFile(SaveFile saveFile) {
+            var dir = GetDir();
+            if (System.IO.Directory.Exists(dir) == false)
+                System.IO.Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Join(dir, saveFile.LastSave.Ticks + Ext)
                                ?? throw new NullReferenceException(nameof(FullPath)), saveFile.ToBytes());
+        }
 
         public static SaveFileInfo? GetLatesFileInfo() {
             var all = GetAllFiles();

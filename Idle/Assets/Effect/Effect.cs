@@ -6,7 +6,7 @@ using Idle;
 using Idle.Building;
 using Object = UnityEngine.Object;
 
-namespace Effect {
+namespace Idle.Effect {
     public class Effect {
         private readonly DateTime _endEffect;
         private readonly Action<PropMultiplikatorsWorker> _func;
