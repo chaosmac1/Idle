@@ -14,7 +14,9 @@ using UnityEngine;
 namespace Idle {
     public class Map: MonoBehaviour {
         [SerializeField] public GameObject? taget;
+        [SerializeField] public GameObject? matrialHolderObj; 
         [SerializeField] public int2 size;
+        [SerializeField] public GameObject tilePop;
         public Dictionary<ETypeHint, ulong>? Cargo { get; private set; }
         public MapTime MapTime { get; internal set; }
         private static readonly TimeSpan AutoSaveDelay = TimeSpan.FromMinutes(5);
@@ -168,10 +170,19 @@ namespace Idle {
             /// <summary> Y,X </summary>
             this._tiles = new Tile[size.y,size.x];
 
+            
+            
             // Tiles
+            if (matrialHolderObj is null)
+                throw new NullReferenceException(nameof(matrialHolderObj));
+
+            MatrialHolder? matrialHolder = matrialHolderObj.GetComponent<MatrialHolder>();
+            if (matrialHolder is null)
+                throw new NullReferenceException(nameof(matrialHolderObj) + " Have not Component: " + nameof(MatrialHolder));
+            
             for (int y = 0; y < size.y; y++) {
                 for (int x = 0; x < size.x; x++) {
-                    var tile = new Tile(new uint2((uint) x, (uint) y));
+                    var tile = Tile.Factory(tilePop, matrialHolder, new uint2((uint) x, (uint) y));
                     _tiles[y, x] = tile;
                     var tileFromSaveFile = saveFile.Tiles[y,x];
                     if (tileFromSaveFile.HasValue == false) continue;

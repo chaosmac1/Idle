@@ -1,22 +1,89 @@
 using System;
 using Idle.Building;
 using JetBrains.Annotations;
+using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 #nullable enable
 namespace Idle {
     public class Tile: MonoBehaviour {
+        public Idle.MatrialHolder tileMaterialMapper;
         private GuiTile _guiTilePosi;
-        private GameObject _gameObject;
+
+        // Buy
+        private GameObject? _freePalceLv1Obj;
+        private GameObject? _freePalceLv2Obj;
+        private GameObject? _freePalceLv3Obj;
+        private GameObject? _freePalceSetBuyLvObj;
+        private GameObject? _inUseObj;
         
+        // In Use
+        private TextMeshPro? _textName;
+        private Image? _imageLogo;
+        private Image? _imagebg;
+        private Image? _buttonImageBg;
         
-        public uint2 Posi { get; }
+
+        public uint2 Posi { get; private set; } = 0;
         public IBuilding? Building { get; }
 
-        public Tile(uint2 posi) {
-            Posi = posi;
-            throw new NotImplementedException($"TODO Write Langer {nameof(Tile)} (Create GameObject AND Building And Gui)");
+        public static Tile Factory(GameObject gameObjectCopyFrom, Idle.MatrialHolder matrialHolder, uint2 posi) {
+            var tileObj = Object.Instantiate(gameObjectCopyFrom);
+            
+            if (tileObj is null)
+                throw new NullReferenceException(nameof(tileObj));
+            
+            tileObj.SetActive(true);
+            tileObj.gameObject.transform.localPosition = new Vector3(posi.x, posi.y);
+            var tile = tileObj.AddComponent<Tile>();
+            tile.tileMaterialMapper = matrialHolder;
+            tile.Posi = posi;
+
+            tile.SetButtonAndText();
+            
+            return tile;
+        }
+
+        private void SetButtonAndText() {
+            var freePlace = GetChild(gameObject, "FreePlace")?? throw new NullReferenceException("FreePlace");
+            var freePlaceLv1 = GetChild(freePlace, "lv1")?? throw new NullReferenceException("lv1");
+            var freePlaceLv2 = GetChild(freePlace, "lv2")?? throw new NullReferenceException("lv2");
+            var freePlaceLv3 = GetChild(freePlace, "lv3")?? throw new NullReferenceException("lv3");
+            var freePlaceButtonSetBuyLv = GetChild(freePlace, "ButtonSetBuyLv") ?? throw new NullReferenceException("ButtonSetBuyLv");
+            
+            var inUse = GetChild(gameObject, "InUse")?? throw new NullReferenceException("InUse");
+            var inUseText = GetChild(inUse, "Text") ?? throw new NullReferenceException("Text");
+            var inUseButtonAddWorker = GetChild(inUse, "ButtonAddWorker") ?? throw new NullReferenceException("ButtonAddWorker");
+            var inUseLogo = GetChild(inUse, "Logo") ?? throw new NullReferenceException("Logo");
+            var inUseButtonBreak = GetChild(inUse, "ButtonBreak") ?? throw new NullReferenceException("ButtonBreak");
+
+            
+            _freePalceLv1Obj = freePlaceLv1;
+            _freePalceLv2Obj = freePlaceLv2;
+            _freePalceLv3Obj = freePlaceLv3;
+            _freePalceSetBuyLvObj = freePlaceButtonSetBuyLv;
+            
+            _inUseObj = inUse;
+            _imageLogo = inUseLogo.GetComponent<Image>() ?? throw new NullReferenceException("inUseLogo Not Have Component<Image>");
+            _imagebg = inUse.GetComponent<Image>() ?? throw new NullReferenceException("inUse Not Have Component<Image>");
+            _buttonImageBg = inUseButtonAddWorker.GetComponent<Image>() ?? throw new NullReferenceException("inUseButtonAddWorker Not Have Component<Image>");
+            
+            
+        }
+
+        private static GameObject? GetChild(GameObject obj, string name) {
+            Transform? transform = obj.transform.Find(name);
+            if (transform is null) return null;
+
+            return transform.gameObject;
+        }
+        
+        
+        private void CopyComponent() {
+            
         }
 
         public void LateUpdate() 
