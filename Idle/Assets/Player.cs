@@ -80,7 +80,9 @@ namespace Idle {
             if (Input.GetKey(Enum.Parse<KeyCode>(this.ScrollIn))) {
                 camera.orthographicSize -= (this.ScrollSpeed * Time.deltaTime);
             }
-                
+
+            if (camera.orthographicSize < 1)
+                camera.orthographicSize = 1;
         }
     }
 }

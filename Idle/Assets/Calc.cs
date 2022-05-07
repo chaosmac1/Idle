@@ -20,14 +20,22 @@ namespace Idle {
             _effects = effects;
             _passiveEffects = passiveEffects;
         }
-
-        /// <summary> Get Multiplicator For Eatch BuildingType As Dictionary </summary>
+        
+        
         public IReadOnlyDictionary<IBuilding.EBuildingName, double> GetMultiplicators() {
-            var res = new Dictionary<IBuilding.EBuildingName, double>(16);
+            var res = PropMultiplikatorsWorker.FactoryDefault();
             
-            throw new NotImplementedException($"TODO Write Langer {nameof(Calc)}");
+            foreach ((PassiveEffect.EPassiveEffects key, (PassiveEffect passiveEffect, int count)) in this._passiveEffects) {
+                passiveEffect.CallEffect(res, count);
+            }
+
+            foreach ((Effect.Effect.EEffectName key, Effect.Effect value) in this._effects) {
+                if (value.EffectIsActive() == false)
+                    continue;
+                value.CallEffect(res);
+            }
             
-            return res;
+            return res.Multiplikators;
         }
     }
 

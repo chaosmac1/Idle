@@ -12,7 +12,7 @@ namespace LambdaTime {
 
         public MapTime NextUpdate() {
             var utcNow = DateTime.UtcNow;
-            var deltaTime = ((float) (utcNow.Ticks - LastUpdate.Ticks)) / 1000f;
+            var deltaTime = ((float) (utcNow.Ticks - LastUpdate.Ticks)) / 100000f;
             return new MapTime(deltaTime, utcNow);
         }
 

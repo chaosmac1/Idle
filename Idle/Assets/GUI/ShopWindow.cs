@@ -1,3 +1,7 @@
+
+
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Hint;
@@ -8,66 +12,90 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
-
-#nullable enable
+using Button = UnityEngine.UI.Button;
 
 namespace Idle.GUI {
     public class ShopWindow : MonoBehaviour {
         [SerializeField] 
         public ulong cost;
         
-        [SerializeField]
-        [FormerlySerializedAs("Button Passive Food")]
+        [SerializeField] [FormerlySerializedAs("Button Passive Food")]
         public GameObject? buyButtonPassiveFood;
         
-        [SerializeField]
-        [FormerlySerializedAs("Text Passive Food")]
+        [SerializeField] [FormerlySerializedAs("Text Passive Food")]
         public GameObject? buyCountNextPassiveFood;
         
         
-        [SerializeField]
-        [FormerlySerializedAs("Button Passive Wood")]
+        [SerializeField] [FormerlySerializedAs("Button Passive Wood")]
         public GameObject? buyButtonPassiveWood;
-        [SerializeField]
-        [FormerlySerializedAs("Text Passive Wood")]
+        
+        [SerializeField] [FormerlySerializedAs("Text Passive Wood")]
         public GameObject? buyCountNextPassiveWood;
         
         
-        [SerializeField]
-        [FormerlySerializedAs("Button Passiv Stone")]
+        [SerializeField] [FormerlySerializedAs("Button Passiv Stone")]
         public GameObject? buyButtonPassiveStone;
-        [SerializeField]
-        [FormerlySerializedAs("Text Passive Stone")]
+        
+        [SerializeField] [FormerlySerializedAs("Text Passive Stone")]
         public GameObject? buyCountNextPassiveStone;
         
         
-        [SerializeField]
-        [FormerlySerializedAs("Button Passive Metal")]
+        [SerializeField] [FormerlySerializedAs("Button Passive Metal")]
         public GameObject? buyButtonPassiveMetal;
         
-        [SerializeField]
-        [FormerlySerializedAs("Text Passive Metal")]
+        [SerializeField] [FormerlySerializedAs("Text Passive Metal")]
         public GameObject? buyCountNextPassiveMetal;
         
         
-        [SerializeField]
-        [FormerlySerializedAs("Button Passive Faith")]
+        [SerializeField] [FormerlySerializedAs("Button Passive Faith")]
         public GameObject? buyButtonPassiveFaith;
         
-        [SerializeField]
-        [FormerlySerializedAs("Text Passive Faith")]
+        [SerializeField] [FormerlySerializedAs("Text Passive Faith")]
         public GameObject? buyCountNextPassiveFaith;
 
+        [SerializeField] [FormerlySerializedAs("Button Close")]
+        public GameObject? buttonCloseObj;
+        
         private Map? _map;
 
-        private Dictionary<PassiveEffect.EPassiveEffects, (TextMeshPro Text, Button Button)> _dictionaryFields = new();
+        private Dictionary<PassiveEffect.EPassiveEffects, (TextMeshProUGUI Text, UnityEngine.UI.Button Button)> _dictionaryFields = new();
         
         public void Start() {
             CheckNull();
 
             _map = GameObject.FindObjectOfType<Map>() ?? throw new NullReferenceException(nameof(Map) + " Not Found");
 
+            var closeButton = this.buttonCloseObj!.GetComponent<UnityEngine.UI.Button>() ?? throw new NullReferenceException("buttonCloseObj Button Not Found");
+
+            closeButton.onClick.AddListener(this.onClickClose);
+            
             AddAllInDictionaryFields();
+            
+            SetOnClick(this._map);
+        }
+
+        public void Update() {
+            foreach (var (key, (passiveEffect, count)) in _map!.PassiveEffects) {
+                switch (key) {
+                    case PassiveEffect.EPassiveEffects.PassivFood:
+                        this._dictionaryFields[PassiveEffect.EPassiveEffects.PassivFood].Text.text = "X" + count;
+                        break;
+                    case PassiveEffect.EPassiveEffects.PassivWood:
+                        this._dictionaryFields[PassiveEffect.EPassiveEffects.PassivWood].Text.text = "X" + count;
+                        break;
+                    case PassiveEffect.EPassiveEffects.PassivStone:
+                        this._dictionaryFields[PassiveEffect.EPassiveEffects.PassivStone].Text.text = "X" + count;
+                        break;
+                    case PassiveEffect.EPassiveEffects.PassivMetal:
+                        this._dictionaryFields[PassiveEffect.EPassiveEffects.PassivMetal].Text.text = "X" + count;
+                        break;
+                    case PassiveEffect.EPassiveEffects.PassivFaith:
+                        this._dictionaryFields[PassiveEffect.EPassiveEffects.PassivFaith].Text.text = "X" + count;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
         }
 
         private void CheckNull() {
@@ -91,13 +119,15 @@ namespace Idle.GUI {
                 throw new NullReferenceException(nameof(buyButtonPassiveFaith)); 
             if (buyCountNextPassiveFaith is null)
                 throw new NullReferenceException(nameof(buyCountNextPassiveFaith));
+            if (buttonCloseObj is null)
+                throw new NullReferenceException(nameof(buttonCloseObj));
         }
         
         private void AddAllInDictionaryFields() {
             void Put(GameObject objText, GameObject objButton, PassiveEffect.EPassiveEffects effectName) {
-                var textMeshPro = objText.GetComponent<TextMeshPro>() 
+                var textMeshPro = objText.GetComponent<TextMeshProUGUI>() 
                                   ?? throw new NullReferenceException("TextMeshPro Not Found For Effect: " + effectName);
-                var button = objButton.GetComponent<Button>() 
+                var button = objButton.GetComponent<UnityEngine.UI.Button>() 
                              ?? throw new NullReferenceException("Button Not Found For Effect: " + effectName);
 
                 _dictionaryFields[effectName] = (textMeshPro, button);
@@ -115,12 +145,12 @@ namespace Idle.GUI {
         }
 
         private void SetOnClick(Map map) {
-            foreach (var (key, value) in _dictionaryFields) {
-                value.Button.clicked += () => OnClick(map, key, value.Text, value.Button, cost);
+            foreach ((PassiveEffect.EPassiveEffects key, (TextMeshProUGUI text, Button button)) in _dictionaryFields) {
+                button.onClick.AddListener(() => OnClick(map, key, text, button, cost));
             }
         }
 
-        private static void OnClick(Map map, PassiveEffect.EPassiveEffects passiveEffectName, TextMeshPro text, Button button, ulong cost) {
+        private static void OnClick(Map map, PassiveEffect.EPassiveEffects passiveEffectName, TextMeshProUGUI text, UnityEngine.UI.Button button, ulong cost) {
             var passiveEffectsDic = map.PassiveEffects!;
 
             bool CanBuy() {
@@ -135,12 +165,19 @@ namespace Idle.GUI {
 
                 map.Cargo![ETypeHint.Gold] -= cost;
             }
-            
-            if (CanBuy() == false)
+
+            if (CanBuy() == false) {
+                Debug.Log("Can Not Buy: " + passiveEffectName);
                 return;
-            
+            }
             Buy();
+            Debug.Log("Buy: " + passiveEffectName);
+            
             map.AddCountOrSetPassiveEffects(passiveEffectName);
+        }
+
+        private void onClickClose() {
+            this.gameObject.SetActive(false);
         }
     }
 }

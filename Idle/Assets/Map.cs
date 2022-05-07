@@ -52,6 +52,7 @@ namespace Idle {
         
 
         public void Start() {
+            _effects = new Dictionary<Effect.Effect.EEffectName, Effect.Effect>(16);
             ThrowIfNull(gameObject, nameof(gameObject));
             if (size.x == 0 || size.y == 0) throw new Exception($"{nameof(size)}. X Or Y is 0");
             if (size.x < 0 || size.y < 0) throw new Exception($"{nameof(size)}. X Or Y is lower then 0");
@@ -70,33 +71,98 @@ namespace Idle {
             var calc = new Calc(MapTime.DeltaTime, _effects, _passiveEffects, tileGroups);
 
             IReadOnlyDictionary<IBuilding.EBuildingName, double> multiplicators = calc.GetMultiplicators()!;
-            var allWorkers = GetAllWorkers(tileGroups);
-
             if (Cargo is null)
                 Cargo = new Dictionary<ETypeHint, ulong>();
             
-            foreach (var (key, value) in tileGroups) {
-                if (value is null || value.Count == 0) continue;
-                if (multiplicators.TryGetValue(key, out var multiplicator) == false) 
-                    multiplicator = 1;
-
-                var building = value[0];
-                
-                ValueAndHint<ulong> productValue = building.ProductValueAsValueAndHint(allWorkers[key], multiplicator);
-
-                Cargo[productValue.Hint] = Cargo.ContainsKey(productValue.Hint)
-                    ? Cargo[productValue.Hint] + productValue.Value
-                    : productValue.Value;
-            }
+            UpdateBuidings(tileGroups, multiplicators);
 
             Multiplicators = multiplicators;
+
+            if (new TimeSpan(_lastAutoSave.Ticks + TimeSpan.FromMinutes(1).Ticks) < new TimeSpan(DateTime.UtcNow.Ticks)) {
+                this.CreateSaveFile();
+                _lastAutoSave = DateTime.UtcNow;
+            }
         }
+
+        private void UpdateBuidings(Dictionary<IBuilding.EBuildingName, List<IBuilding>> tileGroups, IReadOnlyDictionary<IBuilding.EBuildingName, double> multiplicators) {
+            var productCargoMulity = new Dictionary<ETypeHint, ulong>(16);
+            
+            void UpdateBuilding(IBuilding.EBuildingName key, IBuilding? building ) {
+                if (building is null)
+                    throw new NullReferenceException(nameof(building));
+                
+                if (multiplicators.TryGetValue(key, out var multiplicator) == false)
+                    multiplicator = 1;
+
+                var valueAndHints = building.ProductValueAsValueAndHint(building.Worker, productCargoMulity, multiplicator);
+                
+                bool IsForProductCargoMulity(ETypeHint hint) {
+                    return hint switch {
+                        ETypeHint.MultiplierForFarm => true,
+                        ETypeHint.MultiplierForForest => true,
+                        ETypeHint.MultiplierForMine => true,
+                        ETypeHint.MultiplierForGaranary => true,
+                        ETypeHint.MultiplierForShrine => true,
+                        ETypeHint.MultiplierForSchool => true,
+                        ETypeHint.MultiplierForSmith => true,
+                        ETypeHint.MultiplierForTemple => true,
+                        ETypeHint.MultiplierForDocks => true,
+                        ETypeHint.MultiplierForMill => true,
+                        ETypeHint.MultiplierForFactory => true,
+                        ETypeHint.MultiplierForCollege => true,
+                        _ => false
+                    };
+                }
+                
+                 foreach (var valueAndHint in valueAndHints) {
+                    if (IsForProductCargoMulity(valueAndHint.Hint)) {
+                        productCargoMulity[valueAndHint.Hint] = productCargoMulity.ContainsKey(valueAndHint.Hint) switch {
+                            true => (productCargoMulity[valueAndHint.Hint] + valueAndHint.Value),
+                            _ => valueAndHint.Value
+                        };
+                        continue;
+                    }
+
+                    var value = (ulong)((double) valueAndHint.Value * (double) this.MapTime.DeltaTime);
+                    Cargo![valueAndHint.Hint] = Cargo.ContainsKey(valueAndHint.Hint)
+                        ? Cargo[valueAndHint.Hint] + value
+                        : value;
+                }
+            }
+
+            void UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName key, Dictionary<IBuilding.EBuildingName, List<IBuilding>> tileGroups) {
+                if (tileGroups.ContainsKey(key) == false) return;
+                var buildings = tileGroups[key];
+                if (buildings is null)
+                    throw new NullReferenceException(nameof(buildings));
+                
+                foreach (var building in buildings) {
+                    UpdateBuilding(key, building);
+                }
+            }
+
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.College, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Factory, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Mill, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Docks, tileGroups);
+            
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.School, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Temple, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Smith, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Shrine, tileGroups);
+            
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Granary, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Mine, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Forest, tileGroups);
+            UpdateBuildingListFromDicIfExist(IBuilding.EBuildingName.Farm, tileGroups);
+        }
+
 
         public void SoftReset() {
             if (_passiveEffects is not null && _passiveEffects.ContainsKey(PassiveEffect.EPassiveEffects.PassivFaith)) {
                 var tuple = _passiveEffects[PassiveEffect.EPassiveEffects.PassivFaith];
                 tuple.Count = 1;
-                tuple.PassiveEffect.CallEffect(PropMultiplikatorsWorker.FactoryDefault());
+                tuple.PassiveEffect.CallEffect(PropMultiplikatorsWorker.FactoryDefault(), 1);
             }
             
 
@@ -106,7 +172,11 @@ namespace Idle {
         public void HardReset() {
             var saveFile = new SaveFile(
                 new (ulong Worker, IBuilding.EBuildingName EBuildingName)?[size.y, size.x], 
-                new Dictionary<ETypeHint, ulong>(), 
+                new Dictionary<ETypeHint, ulong>() {
+                    {ETypeHint.Food, 1000},
+                    {ETypeHint.Stone, 1000},
+                    {ETypeHint.Metal, 1000},
+                }, 
                 DateTime.UtcNow, 
                 new List<(PassiveEffect.EPassiveEffects, int Count)>());
             
@@ -144,6 +214,7 @@ namespace Idle {
                 Cargo??new(), 
                 _lastAutoSave, 
                 passiveEffectList);
+            SaveFileInfo.CreateSaveFile(saveFile);
         }
 
 
@@ -186,7 +257,8 @@ namespace Idle {
                     _tiles[y, x] = tile;
                     var tileFromSaveFile = saveFile.Tiles[y,x];
                     if (tileFromSaveFile.HasValue == false) continue;
-                    tile.LoadValues(tileFromSaveFile.Value.EBuildingName, tileFromSaveFile.Value.Worker);
+                    tile.SetBuildingAndImages(tileFromSaveFile.Value.EBuildingName, tileFromSaveFile.Value.Worker);
+                    tile.LoadFromSave(tileFromSaveFile.Value.EBuildingName, tileFromSaveFile.Value.Worker);
                 }
             }
             

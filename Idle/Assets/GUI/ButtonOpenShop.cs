@@ -7,16 +7,15 @@ using UnityEngine.UIElements;
 namespace Idle.GUI {
     public class ButtonOpenShop: MonoBehaviour {
         public GameObject? GUIShopWindow;
-        private Button? _button;
-        
+
         public void Start() {
             if (GUIShopWindow is null)
                 throw new NullReferenceException(nameof(GUIShopWindow));
 
-            _button = this.GetComponent<Button>() ?? throw new NullReferenceException("Button Component Not Found");
+            var button = this.GetComponent<UnityEngine.UI.Button>() ?? throw new NullReferenceException("Button Component Not Found");
 
-            _button.clicked += this.OnClick;
-            
+            button.onClick.AddListener(this.OnClick);
+
             GUIShopWindow.SetActive(false);   
         }
 

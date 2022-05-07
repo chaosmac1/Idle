@@ -21,11 +21,8 @@ namespace Idle.Effect {
                 
                 if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Farm))
                     multiFarm = prop.Multiplikators[IBuilding.EBuildingName.Farm];
-                if (prop.Multiplikators.ContainsKey(IBuilding.EBuildingName.Docks))
-                    multiDocks = prop.Multiplikators[IBuilding.EBuildingName.Docks];
 
                 prop.Multiplikators[IBuilding.EBuildingName.Farm] = (multiFarm == 0 ? 1 : multiFarm) * 2;
-                prop.Multiplikators[IBuilding.EBuildingName.Docks] = (multiDocks == 0 ? 1 : multiDocks) * 2;
             } },
             {EEffectName.RitualWood, prop => {
                 double multi = 0;
